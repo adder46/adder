@@ -4,13 +4,19 @@ pub struct RippleCarryAdder {
 }
 
 impl RippleCarryAdder {
+
     pub fn add(&mut self, a: u8, b: u8) {
-        for i in 0..8 {
+        for i in 0..self.adders.len() {
             let bit1 = Bit((a >> i) & 1);
             let bit2 = Bit((b >> i) & 1);
-            self.adders[i].add(bit1, bit2);
-            if i < 7 {
-                self.adders[i + 1].carry_in = self.adders[i].carry_out;
+            let (left, right) = self.adders.split_at_mut(i+1);
+            let current_adder = &mut left[i];
+            current_adder.add(bit1, bit2);
+            match right.get_mut(0) {
+                Some(next_adder) => {
+                    next_adder.carry_in = current_adder.carry_out;
+                }
+                None => {} 
             }
         }
     }
@@ -35,6 +41,7 @@ struct FullAdder {
 }
 
 impl FullAdder {
+
     fn add(&mut self, a: Bit, b: Bit) {
         self.halfadder1.add(a, b);
         self.halfadder2.add(self.halfadder1.sum, self.carry_in);
