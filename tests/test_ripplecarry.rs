@@ -6,6 +6,7 @@ fn test_add() {
     adder.add(4, 4);
     assert_eq!(adder.get_result(), 8);
     let mut adder: RippleCarryAdder = Default::default();
-    adder.add(128, 128);
+    let result = adder.add(128, 128);
     assert_eq!(adder.get_result(), 0);
+    assert_eq!(result, Err("Overflow."));
 }

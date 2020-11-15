@@ -5,7 +5,7 @@ pub struct RippleCarryAdder {
 
 impl RippleCarryAdder {
 
-    pub fn add(&mut self, a: u8, b: u8) {
+    pub fn add(&mut self, a: u8, b: u8) -> Result<(), &'static str>  {
         for i in 0..self.adders.len() {
             let bit1 = Bit((a >> i) & 1);
             let bit2 = Bit((b >> i) & 1);
@@ -16,9 +16,14 @@ impl RippleCarryAdder {
                 Some(next_adder) => {
                     next_adder.carry_in = current_adder.carry_out;
                 }
-                None => {} 
+                None => {
+                    if current_adder.carry_out == Bit(1) {
+                        return Err("Overflow.");
+                    }
+                } 
             }
         }
+        Ok(())
     }
 
     pub fn get_result(&self) -> u8 {
@@ -63,5 +68,5 @@ impl HalfAdder {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 struct Bit(u8);
