@@ -5,7 +5,7 @@ pub struct RippleCarryAdder {
 
 impl RippleCarryAdder {
 
-    pub fn add(&mut self, a: u8, b: u8) -> Result<(), &'static str>  {
+    pub fn add(&mut self, a: u8, b: u8) -> Result<u8, &'static str>  {
         for i in 0..self.adders.len() {
             let bit1 = Bit((a >> i) & 1);
             let bit2 = Bit((b >> i) & 1);
@@ -23,10 +23,10 @@ impl RippleCarryAdder {
                 } 
             }
         }
-        Ok(())
+        Ok(self.get_result())
     }
 
-    pub fn get_result(&self) -> u8 {
+    fn get_result(&self) -> u8 {
         let mut result = 0;
         for adder in self.adders.iter().rev() {
             result <<= 1;
