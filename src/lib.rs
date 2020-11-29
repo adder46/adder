@@ -90,3 +90,51 @@ impl HalfAdder {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 struct Bit(u8);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test_case::test_case;
+    #[test]
+    fn ripple_add() {
+        let mut adder: RippleCarryAdder = Default::default();
+        let result = adder.add(4, 4);
+        assert_eq!(result, Ok(8));
+    }
+
+    #[test]
+    fn ripple_add_max() {
+        let mut adder: RippleCarryAdder = Default::default();
+        let result = adder.add(128, 127);
+        assert_eq!(result, Ok(255));
+    }
+
+    #[test]
+    fn ripple_add_overflow() {
+        let mut adder: RippleCarryAdder = Default::default();
+        let result = adder.add(128, 128);
+        assert_eq!(result, Err("Overflow."));
+    }
+
+    #[test_case(Bit(0), Bit(0), Bit(0), Bit(0); "0 and 0")]
+    #[test_case(Bit(0), Bit(1), Bit(0), Bit(1); "0 and 1")]
+    #[test_case(Bit(1), Bit(0), Bit(0), Bit(1); "1 and 0")]
+    #[test_case(Bit(1), Bit(1), Bit(1), Bit(0); "1 and 1")]
+    fn full_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
+        let mut fulladder: FullAdder = Default::default();
+        fulladder.add(a, b);
+        assert_eq!(fulladder.carry_out, expected_carry_out);
+        assert_eq!(fulladder.sum, expected_sum);
+    }
+
+    #[test_case(Bit(0), Bit(0), Bit(0), Bit(0); "0 and 0")]
+    #[test_case(Bit(0), Bit(1), Bit(0), Bit(1); "0 and 1")]
+    #[test_case(Bit(1), Bit(0), Bit(0), Bit(1); "1 and 0")]
+    #[test_case(Bit(1), Bit(1), Bit(1), Bit(0); "1 and 1")]
+    fn half_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
+        let mut halfadder: HalfAdder = Default::default();
+        halfadder.add(a, b);
+        assert_eq!(halfadder.carry_out, expected_carry_out);
+        assert_eq!(halfadder.sum, expected_sum);
+    }
+}
