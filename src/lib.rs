@@ -14,11 +14,14 @@ impl RippleCarryAdder {
             // comes to its place, i.e., to the least significant position. By Boolean ANDing
             // the resulting number with 1 (mask), the individual bit is effectively extracted
             // from the number - masking out the rest.
+
             let bit1 = Bit((a >> i) & 1);
             let bit2 = Bit((b >> i) & 1);
+
             // The adders are split in half at the position following the current adder,
             // which means that the current adder becomes the last one in the left half,
             //and the next adder is the first one in the right half.
+
             let (left, right) = self.adders.split_at_mut(i + 1);
             let current_adder = &mut left[i];
             current_adder.add(bit1, bit2);
@@ -48,6 +51,7 @@ impl RippleCarryAdder {
         // comes first. We start from 0, and pack the bits
         // back into the result, by shifting left by 1
         // each time through the loop and ORing with the sum.
+
         let mut result = 0;
         for adder in self.adders.iter().rev() {
             result <<= 1;
@@ -95,6 +99,7 @@ struct Bit(u8);
 mod tests {
     use super::*;
     use test_case::test_case;
+
     #[test]
     fn ripple_add() {
         let mut adder: RippleCarryAdder = Default::default();
