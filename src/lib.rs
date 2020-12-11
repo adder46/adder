@@ -98,33 +98,32 @@ struct Bit(u8);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test_case::test_case;
+    use rstest::*;
 
-    #[test]
-    fn ripple_add() {
+    #[rstest(
+        a,
+        b,
+        expected,
+        case(4, 4, Ok(8)),
+        case(128, 127, Ok(255)),
+        case(128, 128, Err("Overflow."))
+    )]
+    fn ripple_add(a: u8, b: u8, expected: Result<u8, &'static str>) {
         let mut adder: RippleCarryAdder = Default::default();
-        let result = adder.add(4, 4);
-        assert_eq!(result, Ok(8));
+        let result = adder.add(a, b);
+        assert_eq!(result, expected);
     }
 
-    #[test]
-    fn ripple_add_max() {
-        let mut adder: RippleCarryAdder = Default::default();
-        let result = adder.add(128, 127);
-        assert_eq!(result, Ok(255));
-    }
-
-    #[test]
-    fn ripple_add_overflow() {
-        let mut adder: RippleCarryAdder = Default::default();
-        let result = adder.add(128, 128);
-        assert_eq!(result, Err("Overflow."));
-    }
-
-    #[test_case(Bit(0), Bit(0), Bit(0), Bit(0); "0 and 0")]
-    #[test_case(Bit(0), Bit(1), Bit(0), Bit(1); "0 and 1")]
-    #[test_case(Bit(1), Bit(0), Bit(0), Bit(1); "1 and 0")]
-    #[test_case(Bit(1), Bit(1), Bit(1), Bit(0); "1 and 1")]
+    #[rstest(
+        a,
+        b,
+        expected_carry_out,
+        expected_sum,
+        case(Bit(0), Bit(0), Bit(0), Bit(0)),
+        case(Bit(0), Bit(1), Bit(0), Bit(1)),
+        case(Bit(1), Bit(0), Bit(0), Bit(1)),
+        case(Bit(1), Bit(1), Bit(1), Bit(0))
+    )]
     fn full_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
         let mut fulladder: FullAdder = Default::default();
         fulladder.add(a, b);
@@ -132,10 +131,16 @@ mod tests {
         assert_eq!(fulladder.sum, expected_sum);
     }
 
-    #[test_case(Bit(0), Bit(0), Bit(0), Bit(0); "0 and 0")]
-    #[test_case(Bit(0), Bit(1), Bit(0), Bit(1); "0 and 1")]
-    #[test_case(Bit(1), Bit(0), Bit(0), Bit(1); "1 and 0")]
-    #[test_case(Bit(1), Bit(1), Bit(1), Bit(0); "1 and 1")]
+    #[rstest(
+        a,
+        b,
+        expected_carry_out,
+        expected_sum,
+        case(Bit(0), Bit(0), Bit(0), Bit(0)),
+        case(Bit(0), Bit(1), Bit(0), Bit(1)),
+        case(Bit(1), Bit(0), Bit(0), Bit(1)),
+        case(Bit(1), Bit(1), Bit(1), Bit(0))
+    )]
     fn half_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
         let mut halfadder: HalfAdder = Default::default();
         halfadder.add(a, b);

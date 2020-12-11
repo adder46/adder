@@ -5,4 +5,4 @@ authors = ["adder46 <dedmauz69@gmail.com>"]
 edition = "2018"
 
 [dev-dependencies]
-test-case = "1.0.0"
+rstest = "0.6.4"
