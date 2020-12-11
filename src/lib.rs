@@ -1,3 +1,6 @@
+#[cfg(test)]
+use rstest_reuse::{self, *};
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct RippleCarryAdder {
     adders: [FullAdder; 8],
@@ -114,6 +117,7 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    #[template]
     #[rstest(
         a,
         b,
@@ -124,6 +128,9 @@ mod tests {
         case(Bit(1), Bit(0), Bit(0), Bit(1)),
         case(Bit(1), Bit(1), Bit(1), Bit(0))
     )]
+    fn possible_combinations(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {}
+
+    #[apply(possible_combinations)]
     fn full_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
         let mut fulladder: FullAdder = Default::default();
         fulladder.add(a, b);
@@ -131,16 +138,7 @@ mod tests {
         assert_eq!(fulladder.sum, expected_sum);
     }
 
-    #[rstest(
-        a,
-        b,
-        expected_carry_out,
-        expected_sum,
-        case(Bit(0), Bit(0), Bit(0), Bit(0)),
-        case(Bit(0), Bit(1), Bit(0), Bit(1)),
-        case(Bit(1), Bit(0), Bit(0), Bit(1)),
-        case(Bit(1), Bit(1), Bit(1), Bit(0))
-    )]
+    #[apply(possible_combinations)]
     fn half_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
         let mut halfadder: HalfAdder = Default::default();
         halfadder.add(a, b);
