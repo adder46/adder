@@ -132,7 +132,7 @@ mod tests {
         case(128, 128, Err("Overflow."))
     )]
     fn ripple_add(a: u8, b: u8, expected: Result<u8, &'static str>) {
-        let mut adder: RippleCarryAdder = Default::default();
+        let mut adder = RippleCarryAdder::default();
         let result = adder.add(a, b);
         assert_eq!(result, expected);
     }
@@ -152,7 +152,7 @@ mod tests {
 
     #[apply(possible_combinations)]
     fn full_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
-        let mut full_adder: FullAdder = Default::default();
+        let mut full_adder = FullAdder::default();
         full_adder.add(a, b);
         assert_eq!(full_adder.carry_out, expected_carry_out);
         assert_eq!(full_adder.sum, expected_sum);
@@ -160,7 +160,7 @@ mod tests {
 
     #[apply(possible_combinations)]
     fn half_add(a: Bit, b: Bit, expected_carry_out: Bit, expected_sum: Bit) {
-        let mut half_adder: HalfAdder = Default::default();
+        let mut half_adder = HalfAdder::default();
         half_adder.add(a, b);
         assert_eq!(half_adder.carry_out, expected_carry_out);
         assert_eq!(half_adder.sum, expected_sum);
