@@ -16,7 +16,7 @@ impl RippleCarryAdder {
              * However, each time through the loop, the number of shifted positions (`i`)
              * increases by 1 until it reaches 7. As a result, previously extracted bit is
              * discarded and the bit we want to extract next comes to its place, i.e., becomes LSB.
-             * By Boolean ANDing the resulting number with 1 (mask), the individual bit at the end
+             * By bitwise ANDing the resulting number with 1 (mask), the individual bit at the end
              * is effectively extracted from the number - masking out the rest.
              */
             let bit1 = Bit((a >> i) & 1);
