@@ -15,36 +15,38 @@ impl CarrySelectAdder {
         let (a_high, a_low) = self.bisect(a);
         let (b_high, b_low) = self.bisect(b);
 
-        let (tx1, rx1) = std::sync::mpsc::channel();
-        let (tx2, rx2) = std::sync::mpsc::channel();
-
         let u1 = std::thread::spawn(move || {
             self.upper1.adders[0].carry_in = Bit(1);
-            self.upper1.add(a_high, b_high).unwrap();
-            tx1.send(self.upper1.get_result()).unwrap();
+            self.upper1.add(a_high, b_high)
         });
 
         let u2 = std::thread::spawn(move || {
             self.upper2.adders[0].carry_in = Bit(0);
-            self.upper2.add(a_high, b_high).unwrap();
-            tx2.send(self.upper2.get_result()).unwrap();
+            self.upper2.add(a_high, b_high)
         });
 
-        let _ = u1.join().unwrap();
-        let _ = u2.join().unwrap();
+        let u1_result = match u1.join().unwrap() {
+            Ok(r) => r,
+            Err(_) => return Err("Overflow."),
+        };
+
+        let u2_result = match u2.join().unwrap() {
+            Ok(r) => r,
+            Err(_) => return Err("Overflow."),
+        };
 
         match self.lower.add(a_low, b_low) {
             Ok(_) => {
-                let upper = rx2.recv().unwrap();
+                let upper = u2_result;
                 let lower = self.lower.get_result();
                 return Ok(self.combine(upper, lower));
-            },
+            }
             Err(_) => {
-                let upper = rx1.recv().unwrap();
+                let upper = u1_result;
                 let lower = self.lower.get_result();
                 return Ok(self.combine(upper, lower));
-            },
-        }        
+            }
+        }
     }
 
     fn bisect(&self, n: u16) -> (u8, u8) {
@@ -178,12 +180,13 @@ mod tests {
     use super::*;
     use rstest::*;
 
-
     #[rstest(
         a,
         b,
         expected,
         case(255, 255, Ok(510)),
+        case(512, 512, Ok(1024)),
+        case(32768, 32768, Err("Overflow."))
     )]
     fn carry_select_add(a: u16, b: u16, expected: Result<u16, &'static str>) {
         let adder = CarrySelectAdder::default();
@@ -199,7 +202,7 @@ mod tests {
         case(128, 127, Ok(255)),
         case(128, 128, Err("Overflow.")),
         case(187, 246, Err("Overflow.")),
-        case(255, 255, Err("Overflow.")),
+        case(255, 255, Err("Overflow."))
     )]
     fn ripple_add(a: u8, b: u8, expected: Result<u8, &'static str>) {
         let mut adder = RippleCarryAdder::default();
