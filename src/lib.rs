@@ -39,12 +39,12 @@ impl CarrySelectAdder {
             Ok(_) => {
                 let upper = u2_result;
                 let lower = self.lower.get_result();
-                return Ok(self.combine(upper, lower));
+                Ok(self.combine(upper, lower))
             }
             Err(_) => {
                 let upper = u1_result;
                 let lower = self.lower.get_result();
-                return Ok(self.combine(upper, lower));
+                Ok(self.combine(upper, lower))
             }
         }
     }
