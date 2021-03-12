@@ -12,55 +12,49 @@ pub struct CarrySelectAdder {
 
 impl CarrySelectAdder {
     pub fn add(mut self, a: u16, b: u16) -> Result<u16, &'static str> {
-        let a_low = self.extract_lower_half(a);
-        let b_low = self.extract_lower_half(b);
-        let a_high = self.extract_upper_half(a);
-        let b_high = self.extract_upper_half(b);
+        let (a_high, a_low) = self.bisect(a);
+        let (b_high, b_low) = self.bisect(b);
 
         let (tx1, rx1) = std::sync::mpsc::channel();
         let (tx2, rx2) = std::sync::mpsc::channel();
 
-        let thread_u1 = std::thread::spawn(move || {
+        let u1 = std::thread::spawn(move || {
             self.upper1.adders[0].carry_in = Bit(1);
             self.upper1.add(a_high, b_high).unwrap();
             tx1.send(self.upper1.get_result()).unwrap();
         });
 
-        let thread_u2 = std::thread::spawn(move || {
+        let u2 = std::thread::spawn(move || {
             self.upper2.adders[0].carry_in = Bit(0);
             self.upper2.add(a_high, b_high).unwrap();
             tx2.send(self.upper2.get_result()).unwrap();
         });
 
-        let _ = thread_u1.join().unwrap();
-        let _ = thread_u2.join().unwrap();
+        let _ = u1.join().unwrap();
+        let _ = u2.join().unwrap();
 
         match self.lower.add(a_low, b_low) {
             Ok(_) => {
-                let mut result: u16 = 0;
                 let upper = rx2.recv().unwrap();
-                result |= upper as u16;
-                result <<= 8;
-                result |= self.lower.get_result() as u16;
-                return Ok(result as u16);
+                let lower = self.lower.get_result();
+                return Ok(self.combine(upper, lower));
             },
             Err(_) => {
-                let mut result: u16 = 0;
                 let upper = rx1.recv().unwrap();
-                result |= upper as u16;
-                result <<= 8;
-                result |= self.lower.get_result() as u16;
-                return Ok(result as u16);
+                let lower = self.lower.get_result();
+                return Ok(self.combine(upper, lower));
             },
         }        
     }
 
-    fn extract_upper_half(&self, n: u16) -> u8 {
-        ((n & 0xFF00) >> 8) as u8
+    fn bisect(&self, n: u16) -> (u8, u8) {
+        (((n & 0xFF00) >> 8) as u8, (n & 0x00FF) as u8)
     }
 
-    fn extract_lower_half(&self, n: u16) -> u8 {
-        (n & 0x00FF) as u8
+    fn combine(&self, a: u8, b: u8) -> u16 {
+        let mut result: u16 = 0;
+        result |= (a as u16) << 8 | b as u16;
+        result
     }
 }
 
